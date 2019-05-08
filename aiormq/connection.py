@@ -181,6 +181,7 @@ class Connection(Base):
             [m.name for m in AuthMechanism]
         )
 
+    @task
     async def __rpc(self, request: spec.Frame, wait_response=True):
         self.writer.write(pamqp.frame.marshal(request, 0))
 
@@ -295,7 +296,6 @@ class Connection(Base):
 
             return
 
-    @task
     async def __receive_frame(self) -> typing.Tuple[int, int, spec.Frame]:
         async with self.lock:
             frame_header = await self.reader.readexactly(7)
@@ -341,6 +341,7 @@ class Connection(Base):
         else:
             return exc.ConnectionClosed(frame.reply_code, frame.reply_text)
 
+    @task
     async def __reader(self):
         try:
             while not self.reader.at_eof():
