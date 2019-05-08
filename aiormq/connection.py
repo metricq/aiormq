@@ -298,12 +298,10 @@ class Connection(Base):
     @task
     async def __receive_frame(self) -> typing.Tuple[int, int, spec.Frame]:
         async with self.lock:
-            frame_header = await self.reader.readexactly(1)
+            frame_header = await self.reader.readexactly(7)
 
-            if frame_header == b'\0x00':
+            if frame_header[0] == 0:
                 raise spec.AMQPFrameError(await self.reader.read())
-
-            frame_header += await self.reader.readexactly(6)
 
             if not self.started and frame_header.startswith(b'AMQP'):
                 raise spec.AMQPSyntaxError
